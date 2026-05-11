@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>JobMatch CV</title>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" />
+    <link rel="stylesheet" href="./styles.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" defer></script>
+    <script src="https://unpkg.com/mammoth@1.8.0/mammoth.browser.min.js" defer></script>
+    <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.js" defer></script>
+    <script type="module" src="./app.js"></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Análise de currículo e vagas</p>
+          <h1>JobMatch CV</h1>
+        </div>
+        <div class="topbar-actions">
+          <button class="ghost-button" type="button" id="loadSample">
+            <i data-lucide="sparkles" aria-hidden="true"></i>
+            Exemplo
+          </button>
+          <button class="primary-button" type="button" id="analyzeButton">
+            <i data-lucide="scan-text" aria-hidden="true"></i>
+            Analisar currículo
+          </button>
+        </div>
+      </header>
+
+      <main class="workspace">
+        <aside class="input-panel" aria-label="Entrada do currículo">
+          <section class="tool-surface">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Currículo</p>
+                <h2>Arquivo ou texto</h2>
+              </div>
+              <span class="status-pill" id="parserStatus">Pronto</span>
+            </div>
+
+            <label class="drop-zone" for="resumeFile" id="dropZone">
+              <input id="resumeFile" type="file" accept=".pdf,.docx,.txt,.md,.rtf" />
+              <span class="drop-icon"><i data-lucide="upload-cloud" aria-hidden="true"></i></span>
+              <strong>Enviar currículo</strong>
+              <span>PDF, DOCX, TXT, MD ou RTF</span>
+            </label>
+
+            <textarea
+              id="resumeText"
+              spellcheck="false"
+              placeholder="Ou cole aqui o texto do seu currículo..."
+            ></textarea>
+
+            <div class="field-grid">
+              <label>
+                Localidade
+                <input id="locationInput" type="text" placeholder="Ex.: Brasil, São Paulo, Remoto" />
+              </label>
+              <label>
+                Preferência
+                <select id="workMode">
+                  <option value="remote">Remoto</option>
+                  <option value="hybrid">Híbrido</option>
+                  <option value="onsite">Presencial</option>
+                  <option value="any">Sem preferência</option>
+                </select>
+              </label>
+            </div>
+
+            <label class="toggle-row">
+              <input id="includeLiveJobs" type="checkbox" checked />
+              <span>Buscar vagas remotas reais na Remotive</span>
+            </label>
+          </section>
+
+          <section class="tool-surface">
+            <div class="section-heading compact">
+              <div>
+                <p class="eyebrow">Vagas próprias</p>
+                <h2>Adicionar descrição</h2>
+              </div>
+            </div>
+            <textarea
+              id="customJobs"
+              class="short-textarea"
+              spellcheck="false"
+              placeholder="Cole uma ou mais vagas. Separe vagas diferentes com uma linha contendo ---"
+            ></textarea>
+            <button class="secondary-button full-width" type="button" id="addCustomJobs">
+              <i data-lucide="list-plus" aria-hidden="true"></i>
+              Adicionar à análise
+            </button>
+          </section>
+        </aside>
+
+        <section class="results-area" aria-label="Resultados">
+          <div class="profile-strip">
+            <div class="profile-card">
+              <span class="metric-label">Senioridade estimada</span>
+              <strong id="seniorityMetric">-</strong>
+            </div>
+            <div class="profile-card">
+              <span class="metric-label">Competências detectadas</span>
+              <strong id="skillsMetric">0</strong>
+            </div>
+            <div class="profile-card">
+              <span class="metric-label">Vagas analisadas</span>
+              <strong id="jobsMetric">0</strong>
+            </div>
+            <div class="profile-card">
+              <span class="metric-label">Melhor aderência</span>
+              <strong id="bestMetric">-</strong>
+            </div>
+          </div>
+
+          <section class="tool-surface analysis-panel">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Perfil extraído</p>
+                <h2>Resumo profissional</h2>
+              </div>
+              <button class="ghost-button icon-only" type="button" id="copyProfile" aria-label="Copiar perfil">
+                <i data-lucide="copy" aria-hidden="true"></i>
+              </button>
+            </div>
+            <div class="profile-summary" id="profileSummary">
+              Envie ou cole um currículo para começar.
+            </div>
+            <div class="chips" id="skillsChips"></div>
+          </section>
+
+          <div class="results-toolbar">
+            <div class="search-box">
+              <i data-lucide="search" aria-hidden="true"></i>
+              <input id="jobFilter" type="search" placeholder="Filtrar vagas por cargo, empresa ou tecnologia" />
+            </div>
+            <div class="segmented-control" aria-label="Filtro de aderência">
+              <button type="button" class="active" data-min-score="0">Todas</button>
+              <button type="button" data-min-score="65">Boas</button>
+              <button type="button" data-min-score="80">Fortes</button>
+            </div>
+          </div>
+
+          <div class="message-banner" id="messageBanner" hidden></div>
+          <div class="job-list" id="jobList" aria-live="polite"></div>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>

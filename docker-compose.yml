@@ -1,0 +1,8 @@
+services:
+  jobmatch-cv:
+    build: .
+    container_name: jobmatch-cv
+    ports:
+      - "4173:4173"
+    environment:
+      PORT: "4173"
