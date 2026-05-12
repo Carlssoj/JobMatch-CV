@@ -702,23 +702,20 @@ function buildReasons({ matchedSkills, keywordHits, seniorityScore, modeScore, l
 
 function renderProfile(profile) {
   const roles = profile.roles.map((item) => item.role).join(", ") || "área principal não identificada";
-  const skills = profile.skills.slice(0, 10).map((skill) => skill.name).join(", ") || "sem competências detectadas";
-  const years = profile.years ? `${profile.years} ano(s) de experiência detectado(s)` : "tempo de experiência não identificado";
+  const skills = profile.skills.slice(0, 6).map((skill) => skill.name).join(", ") || "sem competências detectadas";
+  const years = profile.years ? `${profile.years} ano(s)` : "experiência não identificada";
 
   els.seniorityMetric.textContent = profile.seniority;
   els.skillsMetric.textContent = String(profile.skills.length);
   els.profileSummary.textContent = [
-    `Perfil voltado para ${roles}.`,
-    `${years}. Senioridade estimada: ${profile.seniority}.`,
-    `Principais competências: ${skills}.`,
-    profile.location ? `Localidade detectada/preferida: ${profile.location}.` : "",
-    profile.education !== "Não identificada" ? `Formação: ${profile.education}.` : "",
+    `Foco: ${roles}.`,
+    `${years}. Principais skills: ${skills}.`,
   ]
     .filter(Boolean)
-    .join("\n");
+    .join(" ");
 
   els.skillsChips.innerHTML = profile.skills
-    .slice(0, 24)
+    .slice(0, 10)
     .map((skill, index) => `<span class="chip ${index < 8 ? "strong" : ""}">${escapeHtml(skill.name)}</span>`)
     .join("");
 }
@@ -756,17 +753,15 @@ function getVisibleJobs() {
 function renderJobCard(job, index) {
   const scoreClass = job.score >= 80 ? "high" : job.score >= 60 ? "medium" : "low";
   const isTop = index === 0 && job.score >= 70;
-  const matched = job.matchedSkills.length
-    ? job.matchedSkills.map((skill) => skill.name).join(", ")
-    : "Poucas competências explícitas em comum.";
-  const missing = job.missingSkills.length ? job.missingSkills.map((skill) => skill.name).join(", ") : "Nada crítico detectado.";
+  const matched = job.matchedSkills.slice(0, 6);
+  const missing = job.missingSkills.length
+    ? `Reforçar: ${job.missingSkills.slice(0, 3).map((skill) => skill.name).join(", ")}.`
+    : "Sem lacunas críticas detectadas.";
   const url = job.url
     ? `<a href="${escapeAttribute(job.url)}" target="_blank" rel="noreferrer">Ver vaga</a>`
     : `<span class="source-note">Sem link externo</span>`;
-  const sourceNote =
-    job.source === "Remotive"
-      ? `Fonte: Remotive. Vagas podem ter atraso de 24h conforme a API pública.`
-      : `Fonte: ${escapeHtml(job.source)}.`;
+  const sourceNote = `Fonte: ${escapeHtml(job.source)}.`;
+  const mainReason = job.reasons[0] || "Aderência calculada pelo currículo.";
 
   return `
     <article class="job-card ${isTop ? "top-match" : ""}">
@@ -780,22 +775,14 @@ function renderJobCard(job, index) {
       <div class="job-meta">
         ${job.location ? `<span class="meta-pill">${escapeHtml(job.location)}</span>` : ""}
         ${job.type ? `<span class="meta-pill">${escapeHtml(job.type)}</span>` : ""}
-        ${job.salary ? `<span class="meta-pill">${escapeHtml(job.salary)}</span>` : ""}
-        ${job.category ? `<span class="meta-pill">${escapeHtml(job.category)}</span>` : ""}
       </div>
-      <div class="score-row">
-        <div class="match-block">
-          <strong>Por que combina</strong>
-          <p>${escapeHtml(job.reasons.join(" "))}</p>
-        </div>
-        <div class="match-block">
-          <strong>Competências alinhadas</strong>
-          <p>${escapeHtml(matched)}</p>
-        </div>
-        <div class="match-block">
-          <strong>Pontos para reforçar</strong>
-          <p>${escapeHtml(missing)}</p>
-        </div>
+      <p class="job-insight">${escapeHtml(mainReason)} ${escapeHtml(missing)}</p>
+      <div class="skill-row">
+        ${
+          matched.length
+            ? matched.map((skill) => `<span class="chip strong">${escapeHtml(skill.name)}</span>`).join("")
+            : `<span class="chip">Poucas skills explícitas em comum</span>`
+        }
       </div>
       <div class="source-row">
         <span class="source-note">${sourceNote}</span>
