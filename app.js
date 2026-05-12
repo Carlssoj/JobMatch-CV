@@ -200,6 +200,7 @@ const els = {
   analyzeButton: document.querySelector("#analyzeButton"),
   loadSample: document.querySelector("#loadSample"),
   includeLiveJobs: document.querySelector("#includeLiveJobs"),
+  includeLinkedInSearch: document.querySelector("#includeLinkedInSearch"),
   locationInput: document.querySelector("#locationInput"),
   workMode: document.querySelector("#workMode"),
   customJobs: document.querySelector("#customJobs"),
@@ -373,8 +374,10 @@ async function analyzeCurrentResume(fetchLive = true) {
     }
   }
 
+  const linkedInSearches = els.includeLinkedInSearch.checked ? buildLinkedInSearchJobs(profile) : [];
   const uniqueJobs = dedupeJobs([...liveJobs, ...sources]);
-  state.jobs = uniqueJobs.map((job) => scoreJob(profile, job)).sort((a, b) => b.score - a.score);
+  state.jobs = [...uniqueJobs.map((job) => scoreJob(profile, job)), ...linkedInSearches]
+    .sort((a, b) => b.score - a.score);
 
   setStatus("Análise pronta");
   renderProfile(profile);
@@ -535,6 +538,69 @@ function buildSearchTerms(profile) {
     .map((skill) => skill.name);
 
   return [...new Set([...roleTerms, ...skillTerms, "remote"])].filter(Boolean);
+}
+
+function buildLinkedInSearchJobs(profile) {
+  const location = profile.location || els.locationInput.value.trim() || "Brasil";
+  const role = profile.roles[0]?.role || "Vagas compatíveis";
+  const topSkills = profile.skills
+    .filter((skill) => skill.area !== "Idioma")
+    .slice(0, 3)
+    .map((skill) => skill.name);
+  const searches = [
+    {
+      title: `${role} no LinkedIn`,
+      keywords: [roleSearchTerms[role] || role, ...topSkills.slice(0, 2)].join(" "),
+    },
+    {
+      title: `Busca por skills no LinkedIn`,
+      keywords: topSkills.length ? topSkills.join(" ") : profile.keywords.slice(0, 3).join(" "),
+    },
+  ].filter((item) => item.keywords.trim());
+
+  return searches.map((search, index) => ({
+    id: `linkedin-${index}-${fold(search.keywords).replace(/[^a-z0-9]+/g, "-")}`,
+    title: search.title,
+    company: "LinkedIn Jobs",
+    location,
+    workMode: profile.workMode,
+    type: "Busca externa",
+    salary: "",
+    source: "LinkedIn",
+    url: buildLinkedInJobsUrl(search.keywords, location, profile.workMode),
+    category: "Busca",
+    description: normalizeWhitespace(
+      `${search.keywords} ${location} ${topSkills.join(" ")} ${profile.seniority} ${profile.roles.map((item) => item.role).join(" ")}`,
+    ),
+    score: index === 0 ? 88 : 76,
+    matchedSkills: profile.skills.slice(0, 6),
+    missingSkills: [],
+    keywordHits: profile.keywords.slice(0, 6),
+    reasons: [
+      index === 0
+        ? "Busca montada com o cargo mais aderente ao currículo."
+        : "Busca montada com as principais competências detectadas.",
+    ],
+    isSearchLink: true,
+  }));
+}
+
+function buildLinkedInJobsUrl(keywords, location, workMode) {
+  const url = new URL("https://www.linkedin.com/jobs/search/");
+  url.searchParams.set("keywords", keywords);
+  url.searchParams.set("location", location || "Brasil");
+
+  const workType = {
+    onsite: "1",
+    remote: "2",
+    hybrid: "3",
+  }[workMode];
+
+  if (workType) {
+    url.searchParams.set("f_WT", workType);
+  }
+
+  return url.toString();
 }
 
 function normalizeRemoteJob(job) {
@@ -758,13 +824,15 @@ function renderJobCard(job, index) {
     ? `Reforçar: ${job.missingSkills.slice(0, 3).map((skill) => skill.name).join(", ")}.`
     : "Sem lacunas críticas detectadas.";
   const url = job.url
-    ? `<a href="${escapeAttribute(job.url)}" target="_blank" rel="noreferrer">Ver vaga</a>`
+    ? `<a href="${escapeAttribute(job.url)}" target="_blank" rel="noreferrer">${job.isSearchLink ? "Abrir busca" : "Ver vaga"}</a>`
     : `<span class="source-note">Sem link externo</span>`;
-  const sourceNote = `Fonte: ${escapeHtml(job.source)}.`;
+  const sourceNote = job.isSearchLink
+    ? `Fonte: ${escapeHtml(job.source)}. Abre uma busca externa.`
+    : `Fonte: ${escapeHtml(job.source)}.`;
   const mainReason = job.reasons[0] || "Aderência calculada pelo currículo.";
 
   return `
-    <article class="job-card ${isTop ? "top-match" : ""}">
+    <article class="job-card ${isTop ? "top-match" : ""} ${job.isSearchLink ? "search-card" : ""}">
       <div class="job-header">
         <div>
           <h3 class="job-title">${escapeHtml(job.title)}</h3>

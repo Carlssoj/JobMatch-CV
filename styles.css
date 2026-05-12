@@ -518,6 +518,10 @@ select {
   border-color: rgba(15, 139, 111, 0.42);
 }
 
+.job-card.search-card {
+  border-style: dashed;
+}
+
 .job-header {
   justify-content: space-between;
   align-items: flex-start;
