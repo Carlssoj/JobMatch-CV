@@ -6,6 +6,9 @@ const state = {
   filterText: "",
 };
 
+const liveJobSearchTermLimit = 5;
+const liveJobLimitPerTerm = 12;
+
 const skillLexicon = [
   { name: "JavaScript", aliases: ["javascript", "js", "ecmascript"], area: "Frontend" },
   { name: "TypeScript", aliases: ["typescript", "ts"], area: "Frontend" },
@@ -521,11 +524,27 @@ function buildKeywords(text, skills, roles) {
 }
 
 async function fetchLiveJobMatches(profile) {
-  const [term = "remote"] = buildSearchTerms(profile);
-  const params = new URLSearchParams({ search: term, limit: "20" });
+  const terms = buildSearchTerms(profile).slice(0, liveJobSearchTermLimit);
+  const results = await Promise.allSettled(terms.map(fetchLiveJobsByTerm));
+  const jobs = results
+    .filter((result) => result.status === "fulfilled")
+    .flatMap((result) => result.value);
+  const failures = results.filter((result) => result.status === "rejected");
+
+  failures.forEach((failure) => console.warn(failure.reason));
+
+  if (!jobs.length && failures.length) {
+    throw new Error("Falha ao buscar vagas ao vivo.");
+  }
+
+  return dedupeJobs(jobs);
+}
+
+async function fetchLiveJobsByTerm(term) {
+  const params = new URLSearchParams({ search: term, limit: String(liveJobLimitPerTerm) });
   const response = await fetch(`/api/jobs?${params.toString()}`);
 
-  if (!response.ok) throw new Error("Falha ao buscar vagas ao vivo.");
+  if (!response.ok) throw new Error(`Falha ao buscar vagas ao vivo para "${term}".`);
   const data = await response.json();
   return (data.jobs || []).map(normalizeRemoteJob);
 }
