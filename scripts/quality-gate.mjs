@@ -6,7 +6,8 @@ const checks = [];
 await runQualityGate();
 
 async function runQualityGate() {
-  await checkSyntax(["app.js", "server.mjs", "scripts/quality-gate.mjs"]);
+  await checkSyntax(["app.js", "server.mjs", "scripts/quality-gate.mjs", "scripts/profile-extraction-check.mjs"]);
+  await runCommand(process.execPath, ["scripts/profile-extraction-check.mjs"], "Profile extraction checks");
   await smokeTestServer();
   await optionalLiveJobsCheck();
   printSummary();
