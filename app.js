@@ -8,6 +8,7 @@ const state = {
 
 const liveJobSearchTermLimit = 5;
 const liveJobLimitPerTerm = 12;
+const hasBrowserDom = typeof document !== "undefined";
 
 const skillLexicon = [
   { name: "JavaScript", aliases: ["javascript", "js", "ecmascript"], area: "Frontend" },
@@ -29,6 +30,17 @@ const skillLexicon = [
   { name: "Power BI", aliases: ["power bi", "dax", "power query"], area: "Dados" },
   { name: "Tableau", aliases: ["tableau"], area: "Dados" },
   { name: "Excel", aliases: ["excel", "vba", "planilhas"], area: "Dados" },
+  { name: "SAP Business One", aliases: ["sap business one", "sap bussines one", "sap b1", "b1if", "dtw"], area: "ERP" },
+  { name: "SAP", aliases: ["sap", "sap hana", "hana"], area: "ERP" },
+  { name: "ERP", aliases: ["erp", "sistemas integrados", "sistema de gestão", "sistema de gestao"], area: "ERP" },
+  { name: "Parametrização", aliases: ["parametrização", "parametrizacao", "parametrizações", "customização", "customizacao"], area: "ERP" },
+  { name: "Service Desk", aliases: ["service desk", "suporte ao usuário", "suporte ao usuario", "sustentação", "sustentacao"], area: "Suporte" },
+  { name: "Help Desk", aliases: ["help desk", "atendimento de chamados", "base de conhecimento"], area: "Suporte" },
+  { name: "Controladoria", aliases: ["controladoria", "gestão financeira", "gestao financeira"], area: "Financeiro" },
+  { name: "Contabilidade", aliases: ["contabilidade", "contábil", "contabil", "ciências contábeis", "ciencias contabeis"], area: "Financeiro" },
+  { name: "Fiscal / Tributário", aliases: ["fiscal", "tributário", "tributario", "impostos", "pis/cofins", "sped", "nfe", "nfse", "reinf"], area: "Fiscal" },
+  { name: "Faturamento", aliases: ["faturamento", "nota fiscal", "notas fiscais"], area: "Operações" },
+  { name: "Suprimentos", aliases: ["suprimentos", "fornecedores", "compras"], area: "Operações" },
   { name: "Machine Learning", aliases: ["machine learning", "ml", "scikit", "pytorch", "tensorflow"], area: "IA" },
   { name: "Data Science", aliases: ["data science", "ciência de dados", "pandas", "numpy"], area: "IA" },
   { name: "LLM", aliases: ["llm", "openai", "langchain", "rag", "chatgpt"], area: "IA" },
@@ -45,7 +57,7 @@ const skillLexicon = [
   { name: "UX/UI", aliases: ["ux", "ui", "figma", "design system", "prototipação"], area: "Design" },
   { name: "SEO", aliases: ["seo", "sem", "google analytics", "analytics"], area: "Marketing" },
   { name: "CRM", aliases: ["crm", "salesforce", "hubspot"], area: "Comercial" },
-  { name: "Customer Success", aliases: ["customer success", "cs", "atendimento", "suporte"], area: "Operações" },
+  { name: "Customer Success", aliases: ["customer success", "sucesso do cliente", "cs", "atendimento ao cliente", "suporte ao cliente", "onboarding", "retenção", "retencao"], area: "Operações" },
   { name: "Inglês", aliases: ["inglês", "english", "advanced english", "fluent english", "fluente"], area: "Idioma" },
   { name: "Espanhol", aliases: ["espanhol", "spanish"], area: "Idioma" },
 ];
@@ -54,6 +66,10 @@ const roleLexicon = [
   { role: "Desenvolvimento Frontend", words: ["frontend", "front-end", "react", "vue", "angular", "interface", "ui"] },
   { role: "Desenvolvimento Backend", words: ["backend", "back-end", "api", "microserviços", "node", "java", "python", ".net"] },
   { role: "Full Stack", words: ["full stack", "fullstack", "frontend", "backend", "react", "node"] },
+  { role: "SAP / ERP", words: ["sap business one", "sap bussines one", "sap b1", "sap", "erp", "b1if", "dtw", "parametrização", "parametrizacao"] },
+  { role: "Sistemas de Negócio", words: ["analista de sistemas", "analista de sustentação", "analista de sustentacao", "analista de suporte", "sistemas", "service desk", "help desk", "implantação", "implantacao", "parametrização", "parametrizacao"] },
+  { role: "Financeiro / Controladoria", words: ["gestão financeira", "gestao financeira", "controladoria", "faturamento", "contábil", "contabil", "contabilidade", "financeiras", "bancária", "bancaria"] },
+  { role: "Fiscal / Tributário", words: ["fiscal", "tributário", "tributario", "impostos", "pis/cofins", "sped", "nfe", "nfse", "reinf"] },
   { role: "Dados e BI", words: ["dados", "bi", "analytics", "power bi", "sql", "dashboard", "relatórios"] },
   { role: "Ciência de Dados / IA", words: ["machine learning", "ia", "ai", "data science", "modelo", "llm", "preditivo"] },
   { role: "DevOps / Cloud", words: ["devops", "cloud", "aws", "azure", "kubernetes", "docker", "infraestrutura"] },
@@ -61,7 +77,7 @@ const roleLexicon = [
   { role: "Produto", words: ["produto", "product", "roadmap", "discovery", "stakeholders", "métricas"] },
   { role: "UX/UI Design", words: ["ux", "ui", "figma", "pesquisa", "protótipo", "design system"] },
   { role: "Marketing / Growth", words: ["marketing", "growth", "seo", "campanhas", "mídia", "conteúdo"] },
-  { role: "Customer Success / Suporte", words: ["customer success", "suporte", "atendimento", "onboarding", "clientes"] },
+  { role: "Customer Success / Suporte", words: ["customer success", "sucesso do cliente", "atendimento ao cliente", "suporte ao cliente", "onboarding", "clientes"] },
 ];
 
 const localJobs = [
@@ -103,6 +119,32 @@ const localJobs = [
     url: "",
     description:
       "SQL, Power BI, Excel, modelagem de dados, indicadores comerciais, storytelling com dados e interação com áreas de negócio.",
+  },
+  {
+    id: "local-sap-b1-1",
+    title: "Analista SAP Business One",
+    company: "Integra ERP",
+    location: "São Paulo híbrido",
+    workMode: "hybrid",
+    type: "CLT",
+    salary: "R$ 8.000 - R$ 12.000",
+    source: "Base local",
+    url: "",
+    description:
+      "SAP Business One, parametrização, B1IF, DTW, HANA, SQL, faturamento, fiscal, add-ons, suporte ao usuário, service desk e processos financeiros.",
+  },
+  {
+    id: "local-erp-1",
+    title: "Analista de Sistemas ERP",
+    company: "Núcleo Operações Digitais",
+    location: "Brasil híbrido",
+    workMode: "hybrid",
+    type: "CLT",
+    salary: "R$ 7.500 - R$ 11.500",
+    source: "Base local",
+    url: "",
+    description:
+      "Sistemas ERP, implantação, sustentação, suporte a usuários, documentação, SQL, processos de controladoria, contabilidade, suprimentos e fiscal.",
   },
   {
     id: "local-ml-1",
@@ -195,33 +237,37 @@ Desenvolvedor Frontend - Studio Web
 Idiomas
 Inglês avançado`;
 
-const els = {
-  resumeFile: document.querySelector("#resumeFile"),
-  resumeText: document.querySelector("#resumeText"),
-  dropZone: document.querySelector("#dropZone"),
-  parserStatus: document.querySelector("#parserStatus"),
-  analyzeButton: document.querySelector("#analyzeButton"),
-  loadSample: document.querySelector("#loadSample"),
-  includeLiveJobs: document.querySelector("#includeLiveJobs"),
-  includeLinkedInSearch: document.querySelector("#includeLinkedInSearch"),
-  locationInput: document.querySelector("#locationInput"),
-  workMode: document.querySelector("#workMode"),
-  customJobs: document.querySelector("#customJobs"),
-  addCustomJobs: document.querySelector("#addCustomJobs"),
-  seniorityMetric: document.querySelector("#seniorityMetric"),
-  skillsMetric: document.querySelector("#skillsMetric"),
-  jobsMetric: document.querySelector("#jobsMetric"),
-  bestMetric: document.querySelector("#bestMetric"),
-  profileSummary: document.querySelector("#profileSummary"),
-  skillsChips: document.querySelector("#skillsChips"),
-  copyProfile: document.querySelector("#copyProfile"),
-  jobFilter: document.querySelector("#jobFilter"),
-  jobList: document.querySelector("#jobList"),
-  messageBanner: document.querySelector("#messageBanner"),
-  scoreButtons: document.querySelectorAll("[data-min-score]"),
-};
+const els = hasBrowserDom
+  ? {
+      resumeFile: document.querySelector("#resumeFile"),
+      resumeText: document.querySelector("#resumeText"),
+      dropZone: document.querySelector("#dropZone"),
+      parserStatus: document.querySelector("#parserStatus"),
+      analyzeButton: document.querySelector("#analyzeButton"),
+      loadSample: document.querySelector("#loadSample"),
+      includeLiveJobs: document.querySelector("#includeLiveJobs"),
+      includeLinkedInSearch: document.querySelector("#includeLinkedInSearch"),
+      locationInput: document.querySelector("#locationInput"),
+      workMode: document.querySelector("#workMode"),
+      customJobs: document.querySelector("#customJobs"),
+      addCustomJobs: document.querySelector("#addCustomJobs"),
+      seniorityMetric: document.querySelector("#seniorityMetric"),
+      skillsMetric: document.querySelector("#skillsMetric"),
+      jobsMetric: document.querySelector("#jobsMetric"),
+      bestMetric: document.querySelector("#bestMetric"),
+      profileSummary: document.querySelector("#profileSummary"),
+      skillsChips: document.querySelector("#skillsChips"),
+      copyProfile: document.querySelector("#copyProfile"),
+      jobFilter: document.querySelector("#jobFilter"),
+      jobList: document.querySelector("#jobList"),
+      messageBanner: document.querySelector("#messageBanner"),
+      scoreButtons: document.querySelectorAll("[data-min-score]"),
+    }
+  : {};
 
-boot();
+if (hasBrowserDom) {
+  boot();
+}
 
 function boot() {
   wireEvents();
@@ -425,19 +471,11 @@ function extractProfile(text) {
 }
 
 function detectSkills(text) {
-  const lowered = ` ${fold(text)} `;
+  const lowered = fold(text);
   const detected = [];
 
   skillLexicon.forEach((skill) => {
-    const hits = skill.aliases.reduce((count, alias) => {
-      const normalizedAlias = fold(alias);
-      const escaped = normalizedAlias.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-      const pattern =
-        normalizedAlias.trim().length <= 2
-          ? new RegExp(`(?<![a-z0-9+.#])${escaped.trim()}(?![a-z0-9+.#])`, "g")
-          : new RegExp(escaped, "g");
-      return count + (lowered.match(pattern)?.length || 0);
-    }, 0);
+    const hits = skill.aliases.reduce((count, alias) => count + countTermHits(lowered, alias), 0);
 
     if (hits > 0) {
       detected.push({ ...skill, hits });
@@ -447,26 +485,64 @@ function detectSkills(text) {
   return detected.sort((a, b) => b.hits - a.hits || a.name.localeCompare(b.name));
 }
 
+function countTermHits(foldedText, term) {
+  return foldedText.match(buildTermPattern(term, "g"))?.length || 0;
+}
+
+function includesTerm(foldedText, term) {
+  return buildTermPattern(term).test(foldedText);
+}
+
+function buildTermPattern(term, flags = "") {
+  const normalizedTerm = fold(term).trim().replace(/\s+/g, " ");
+  const escaped = normalizedTerm.replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/\s+/g, "\\s+");
+  return new RegExp(`(?<![a-z0-9+.#])${escaped}(?![a-z0-9+.#])`, flags);
+}
+
 function detectSeniority(text) {
   const lowered = fold(text);
   const years = detectYears(text);
+  const senioritySignals = [
+    { label: "Sênior", hits: countPatternHits(lowered, /senior|\bsr\b|lead|staff|principal|especialista/g) },
+    { label: "Pleno", hits: countPatternHits(lowered, /pleno|mid-level|mid level/g) },
+    { label: "Júnior", hits: countPatternHits(lowered, /junior|\bjr\b/g) },
+  ]
+    .filter((signal) => signal.hits > 0)
+    .sort((a, b) => b.hits - a.hits);
 
   if (/estagi[aá]rio|internship|trainee/.test(lowered)) return "Estágio / Trainee";
-  if (/junior|j[uú]nior|\bjr\b/.test(lowered) || years < 2) return "Júnior";
-  if (/senior|s[eê]nior|\bsr\b|lead|staff|principal|especialista/.test(lowered) || years >= 7) return "Sênior";
-  if (/pleno|mid-level|mid level/.test(lowered) || years >= 2) return "Pleno";
+  if (senioritySignals.length) return senioritySignals[0].label;
+  if (years >= 7) return "Sênior";
+  if (years >= 2) return "Pleno";
+  if (years > 0) return "Júnior";
 
   return "Não identificada";
 }
 
 function detectYears(text) {
   const lowered = fold(text);
-  const explicit = [...lowered.matchAll(/(\d{1,2})\s*(?:\+?\s*)?(?:anos|years)/g)].map((match) => Number(match[1]));
-  const ranges = [...lowered.matchAll(/\b(19|20)\d{2}\b/g)].map((match) => Number(match[0]));
+  const explicit = [...lowered.matchAll(/(\d{1,2})\s*(?:\+?\s*)?(?:anos|years)/g)]
+    .filter((match) => hasExperienceContext(lowered, match.index, match[0].length))
+    .map((match) => Number(match[1]));
+  const experienceSection = lowered.match(/experiencia profissional([\s\S]*?)(qualificacoes|formacao|cursos|idiomas|$)/)?.[1] || lowered;
+  const ranges = [...experienceSection.matchAll(/\b(19|20)\d{2}\b/g)].map((match) => Number(match[0]));
 
   if (explicit.length) return Math.max(...explicit);
   if (ranges.length >= 2) return Math.max(...ranges) - Math.min(...ranges);
   return 0;
+}
+
+function countPatternHits(text, pattern) {
+  return text.match(pattern)?.length || 0;
+}
+
+function hasExperienceContext(text, start, length) {
+  const context = text.slice(Math.max(0, start - 60), start + length + 60);
+  if (/\b(idade|casado|casada|solteiro|solteira|brasileiro|brasileira|anos de idade)\b/.test(context)) {
+    return false;
+  }
+
+  return /\b(experiencia|experience|atuacao|carreira|profissional|vivencia|pratica|mercado)\b/.test(context);
 }
 
 function detectRoles(text) {
@@ -475,7 +551,7 @@ function detectRoles(text) {
     .map((item) => ({
       role: item.role,
       words: item.words,
-      hits: item.words.reduce((count, word) => count + (lowered.includes(fold(word)) ? 1 : 0), 0),
+      hits: item.words.reduce((count, word) => count + (includesTerm(lowered, word) ? 1 : 0), 0),
     }))
     .filter((item) => item.hits > 0)
     .sort((a, b) => b.hits - a.hits)
@@ -550,18 +626,41 @@ async function fetchLiveJobsByTerm(term) {
 }
 
 function buildSearchTerms(profile) {
+  const domainTerms = buildDomainSearchTerms(profile);
   const roleTerms = profile.roles.map((item) => roleSearchTerms[item.role] || item.role);
   const skillTerms = profile.skills
     .filter((skill) => skill.area !== "Idioma")
     .slice(0, 5)
     .map((skill) => skill.name);
+  const terms = [...new Set([...domainTerms, ...roleTerms, ...skillTerms])].filter(Boolean);
 
-  return [...new Set([...roleTerms, ...skillTerms, "remote"])].filter(Boolean);
+  return terms.length ? terms : ["remote"];
+}
+
+function buildDomainSearchTerms(profile) {
+  const skillNames = new Set(profile.skills.map((skill) => skill.name));
+  const terms = [];
+
+  if (skillNames.has("SAP Business One")) {
+    terms.push("sap business one", "sap b1 analyst");
+  } else if (skillNames.has("SAP")) {
+    terms.push("sap analyst");
+  }
+
+  if (skillNames.has("ERP")) {
+    terms.push("erp systems analyst");
+  }
+  if (skillNames.has("Fiscal / Tributário") && (skillNames.has("SAP Business One") || skillNames.has("SAP"))) {
+    terms.push("sap fiscal analyst");
+  }
+
+  return terms;
 }
 
 function buildLinkedInSearchJobs(profile) {
-  const location = profile.location || els.locationInput.value.trim() || "Brasil";
-  const role = profile.roles[0]?.role || "Vagas compatíveis";
+  const location = profile.location || els.locationInput?.value?.trim() || "Brasil";
+  const role = selectPrimaryRole(profile);
+  const primarySearchTerm = buildSearchTerms(profile)[0] || roleSearchTerms[role] || role;
   const topSkills = profile.skills
     .filter((skill) => skill.area !== "Idioma")
     .slice(0, 3)
@@ -569,7 +668,7 @@ function buildLinkedInSearchJobs(profile) {
   const searches = [
     {
       title: `${role} no LinkedIn`,
-      keywords: [roleSearchTerms[role] || role, ...topSkills.slice(0, 2)].join(" "),
+      keywords: [primarySearchTerm, ...topSkills.slice(0, 2)].join(" "),
     },
     {
       title: `Busca por skills no LinkedIn`,
@@ -602,6 +701,15 @@ function buildLinkedInSearchJobs(profile) {
     ],
     isSearchLink: true,
   }));
+}
+
+function selectPrimaryRole(profile) {
+  const hasSapOrErp = profile.skills.some((skill) => ["SAP Business One", "SAP", "ERP"].includes(skill.name));
+  if (hasSapOrErp) {
+    return profile.roles.find((item) => item.role === "SAP / ERP")?.role || profile.roles[0]?.role || "Vagas compatíveis";
+  }
+
+  return profile.roles[0]?.role || "Vagas compatíveis";
 }
 
 function buildLinkedInJobsUrl(keywords, location, workMode) {
@@ -691,14 +799,14 @@ function addCustomJobs() {
 function scoreJob(profile, job) {
   const jobText = fold(`${job.title} ${job.company} ${job.category || ""} ${job.location} ${job.description}`);
   const matchedSkills = profile.skills.filter((skill) =>
-    skill.aliases.some((alias) => jobText.includes(fold(alias).trim())),
+    skill.aliases.some((alias) => includesTerm(jobText, alias)),
   );
   const missingSkills = detectSkills(job.description)
     .filter((skill) => !profile.skills.some((profileSkill) => profileSkill.name === skill.name))
     .slice(0, 6);
 
-  const roleHits = profile.roles.filter((role) => role.words?.some((word) => jobText.includes(fold(word))));
-  const keywordHits = profile.keywords.filter((keyword) => jobText.includes(fold(keyword)));
+  const roleHits = profile.roles.filter((role) => role.words?.some((word) => includesTerm(jobText, word)));
+  const keywordHits = profile.keywords.filter((keyword) => includesTerm(jobText, keyword));
   const seniorityScore = scoreSeniority(profile.seniority, jobText);
   const modeScore = scoreWorkMode(profile.workMode, job);
   const locationScore = scoreLocation(profile.location, job.location);
@@ -958,17 +1066,23 @@ function hideMessage() {
 }
 
 function refreshIcons() {
-  if (window.lucide) {
+  if (hasBrowserDom && window.lucide) {
     window.lucide.createIcons({ attrs: { "stroke-width": 2 } });
   }
 }
 
-window.addEventListener("load", refreshIcons);
+if (hasBrowserDom) {
+  window.addEventListener("load", refreshIcons);
+}
 
 const roleSearchTerms = {
   "Desenvolvimento Frontend": "frontend react",
   "Desenvolvimento Backend": "backend api",
   "Full Stack": "full stack developer",
+  "SAP / ERP": "sap business one",
+  "Sistemas de Negócio": "erp systems analyst",
+  "Financeiro / Controladoria": "financial systems analyst",
+  "Fiscal / Tributário": "fiscal systems analyst",
   "Dados e BI": "data analyst",
   "Ciência de Dados / IA": "machine learning",
   "DevOps / Cloud": "devops cloud",
@@ -1008,4 +1122,20 @@ const stopWords = new Set([
   "empresa",
   "time",
   "anos",
+  "cargo",
+  "principais",
+  "atividades",
+  "conhecimento",
+  "concluido",
+  "conclusao",
 ]);
+
+export {
+  buildLinkedInSearchJobs,
+  buildSearchTerms,
+  detectRoles,
+  detectSkills,
+  extractProfile,
+  localJobs,
+  scoreJob,
+};
